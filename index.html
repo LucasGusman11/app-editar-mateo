@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editor web</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23000'/%3E%3Cpath d='M14 46 L30 18 L36 28 L42 20 L52 46 Z' fill='%23E2541E'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- ================= pantalla de inicio ================= -->
+<section class="start" id="start">
+  <div class="start-in">
+    <h1>Editor<br>web</h1>
+    <p>Abrí la carpeta de una página web y editala con el mouse: textos, imágenes, colores, estilos, animaciones y más. Si sabés código, también podés tocarlo directamente.</p>
+    <div class="start-btns">
+      <button class="big hidden" id="resume"></button>
+      <button class="big" id="pick">Abrir una carpeta</button>
+    </div>
+    <p class="err" id="err" role="alert"></p>
+    <ul class="start-tips">
+      <li>Elegí la carpeta donde está el <b>index.html</b> de la web.</li>
+      <li>Los cambios se escriben en esa carpeta cuando tocás <b>Guardar</b>. Antes de cada guardado se hace una copia en <b>respaldos</b>.</li>
+      <li>Si el editor se cierra sin guardar, la próxima vez te ofrece recuperar los cambios.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= barra superior ================= -->
+<header class="top">
+  <b class="logo">Editor</b>
+  <span class="crumb" title="Carpeta y archivo"><span id="folderName"></span> / <span id="fileName">—</span></span>
+  <div class="seg" id="modeSeg" role="group" aria-label="Modo">
+    <button data-mode="visual" aria-pressed="true" title="Editar con el mouse">Visual</button>
+    <button data-mode="try" aria-pressed="false" title="Usar la web como un visitante">Probar</button>
+    <button data-mode="code" aria-pressed="false" title="Editar el código">Código</button>
+  </div>
+  <div class="seg" id="devSeg" role="group" aria-label="Tamaño de pantalla">
+    <button data-dev="desktop" aria-pressed="true" title="Escritorio">Escritorio</button>
+    <button data-dev="tablet" aria-pressed="false" title="Tablet (hasta 860 px)">Tablet</button>
+    <button data-dev="mobile" aria-pressed="false" title="Celular (hasta 480 px)">Celular</button>
+  </div>
+  <select class="sel" id="zoom" title="Zoom de la vista" aria-label="Zoom">
+    <option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option>
+  </select>
+  <span class="grow"></span>
+  <button class="icon" id="undo" title="Deshacer (Ctrl+Z)" aria-label="Deshacer">↶</button>
+  <button class="icon" id="redo" title="Rehacer (Ctrl+Y)" aria-label="Rehacer">↷</button>
+  <div class="menuwrap">
+    <button class="btn" id="moreBtn" aria-haspopup="menu" aria-expanded="false">Más ▾</button>
+    <div class="menu hidden" id="moreMenu" role="menu">
+      <button role="menuitem" id="mSearch">Buscar y reemplazar… <kbd>Ctrl+Shift+F</kbd></button>
+      <button role="menuitem" id="mHistory">Historial de respaldos…</button>
+      <button role="menuitem" id="mPublish">Publicar en internet…</button>
+      <button role="menuitem" id="mExport">Descargar la web en .zip</button>
+      <button role="menuitem" id="mOptimize">Optimizar todas las imágenes…</button>
+      <button role="menuitem" id="mSitemap">Crear sitemap para Google…</button>
+      <button role="menuitem" id="mNewPage">Nueva página…</button>
+      <button role="menuitem" id="mKeys">Atajos de teclado <kbd>?</kbd></button>
+      <button role="menuitem" id="mTheme">Tema claro / oscuro</button>
+      <button role="menuitem" id="mLang">English / Español</button>
+      <button role="menuitem" id="mClose">Cambiar de carpeta</button>
+    </div>
+  </div>
+  <span class="status" id="status">Sin cambios</span>
+  <button class="btn" id="viewSite">Ver la web</button>
+  <button class="btn primary" id="save" disabled>Guardar</button>
+</header>
+
+<div class="work">
+  <!-- ================= izquierda ================= -->
+  <aside class="left">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="files" title="Archivos">Archivos</button>
+      <button role="tab" aria-selected="false" data-tab="layers" title="Capas">Capas</button>
+      <button role="tab" aria-selected="false" data-tab="blocks" title="Agregar elementos">Agregar</button>
+      <button role="tab" aria-selected="false" data-tab="assets" title="Imágenes">Imágenes</button>
+    </div>
+    <div class="tabpane" id="pane-files">
+      <div class="pane-actions">
+        <button class="btn sm" id="newPage">Nueva página</button>
+        <button class="btn sm" id="refreshFiles" title="Volver a leer la carpeta">Actualizar</button>
+      </div>
+      <div class="tree" id="fileTree"></div>
+      <p class="note pad">Clic derecho en un archivo para renombrarlo, duplicarlo o borrarlo.</p>
+    </div>
+    <div class="tabpane hidden" id="pane-layers">
+      <p class="note pad">Arrastrá para reordenar. Doble clic para ponerle nombre.</p>
+      <div class="layers" id="layers"></div>
+    </div>
+    <div class="tabpane hidden" id="pane-blocks">
+      <div class="pad">
+        <div class="seg full" id="insertWhere" role="group" aria-label="Dónde insertar">
+          <button data-w="after" aria-pressed="true">Después del elegido</button>
+          <button data-w="inside" aria-pressed="false">Adentro del elegido</button>
+        </div>
+        <p class="note" style="margin-top:.5rem">Clic para insertar, o arrastralo a la página.</p>
+      </div>
+      <div id="blocks"></div>
+    </div>
+    <div class="tabpane hidden" id="pane-assets">
+      <div class="pane-actions">
+        <button class="btn sm primary" id="addImages">Subir imágenes</button>
+      </div>
+      <p class="note pad" id="assetHint">Elegí una imagen de la página y después tocá una de acá para reemplazarla.</p>
+      <div class="assets" id="assets"></div>
+    </div>
+  </aside>
+
+  <!-- ================= centro ================= -->
+  <main class="center">
+    <div class="filetabs" id="filetabs" aria-label="Archivos abiertos"></div>
+    <div class="devbar hidden" id="devbar"></div>
+    <div class="stage" id="stage">
+      <div class="codewrap hidden" id="codeWrap"><div id="code"></div></div>
+      <div class="previewwrap" id="previewWrap">
+        <div class="frame-holder" id="frameHolder"><iframe id="frame" title="Vista de la página"></iframe></div>
+        <div class="rte hidden" id="rte" role="toolbar" aria-label="Formato de texto">
+          <button data-cmd="bold" title="Negrita (Ctrl+B)"><b>N</b></button>
+          <button data-cmd="italic" title="Cursiva (Ctrl+I)"><i>C</i></button>
+          <button data-cmd="underline" title="Subrayado (Ctrl+U)"><u>S</u></button>
+          <button data-cmd="strikeThrough" title="Tachado"><s>T</s></button>
+          <button data-cmd="link" title="Poner un link">Link</button>
+          <button data-cmd="unlink" title="Quitar el link">Sin link</button>
+          <button data-cmd="removeFormat" title="Quitar formato">Limpiar</button>
+        </div>
+      </div>
+      <div class="imageview hidden" id="imageView">
+        <img id="imageViewImg" alt="">
+        <p id="imageViewInfo"></p>
+        <div class="acts" style="justify-content:center"><button class="btn primary" id="imageViewEdit">Editar imagen</button><button class="btn" id="imageViewReplace">Reemplazar este archivo</button></div>
+        <p class="note">Al reemplazarlo se mantiene el mismo nombre, así que la web lo sigue usando en todos lados.</p>
+      </div>
+      <div class="empty" id="emptyView"><p>Elegí un archivo de la izquierda.</p></div>
+    </div>
+    <div class="bottombar">
+      <label class="chk"><input type="checkbox" id="optScripts" checked> Ejecutar scripts</label>
+      <label class="chk"><input type="checkbox" id="optHidden"> Mostrar ocultos</label>
+      <label class="chk"><input type="checkbox" id="optOutline"> Ver contornos</label>
+      <label class="chk">Ancho <input type="number" class="inp tiny" id="customW" min="280" max="3000" placeholder="auto"> px</label>
+      <span class="grow"></span>
+      <span class="hint" id="hint"></span>
+    </div>
+  </main>
+
+  <!-- ================= derecha ================= -->
+  <aside class="right">
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="el">Elemento</button>
+      <button role="tab" aria-selected="false" data-tab="style">Estilo</button>
+      <button role="tab" aria-selected="false" data-tab="fx">Efectos</button>
+      <button role="tab" aria-selected="false" data-tab="page">Página</button>
+      <button role="tab" aria-selected="false" data-tab="audit">Revisión <span class="badge hidden" id="auditBadge"></span></button>
+    </div>
+    <div class="tabpane" id="pane-el"><div class="box" id="elBox"></div></div>
+    <div class="tabpane hidden" id="pane-style"><div class="box" id="styleBox"></div></div>
+    <div class="tabpane hidden" id="pane-fx"><div class="box" id="fxBox"></div></div>
+    <div class="tabpane hidden" id="pane-page"><div class="box" id="pageBox"></div></div>
+    <div class="tabpane hidden" id="pane-audit"><div class="box" id="auditBox"></div></div>
+  </aside>
+</div>
+
+<!-- menú contextual y ventanas -->
+<div class="ctx hidden" id="ctx" role="menu"></div>
+<div class="modal hidden" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-in">
+    <div class="modal-head"><h2 id="modalTitle"></h2><button class="icon" id="modalClose" aria-label="Cerrar">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="vendor/codemirror.bundle.js"></script>
+<script src="vendor/fflate.js"></script>
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+<script src="imgedit.js"></script>
+<script src="extras.js"></script>
+<script src="fx.js"></script>
+</body>
+</html>

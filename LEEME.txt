@@ -1,0 +1,89 @@
+EDITOR WEB
+==========
+
+PARA ABRIRLO
+1. Doble clic en "Abrir editor.bat".
+2. Se abre una ventana negra (dejala abierta) y después Chrome con el editor.
+3. Tocá "Abrir una carpeta" y elegí la carpeta de la web (por ejemplo "portafolio mateo").
+   Chrome pide permiso para ver y guardar cambios: aceptá.
+   La próxima vez aparece el botón "Seguir con ..." para no tener que elegirla de nuevo.
+
+ARRIBA
+- Visual: editás con el mouse.  Probar: usás la web como un visitante.  Código: el código con colores.
+- Escritorio / Tablet / Celular: cómo se ve en cada pantalla. Los cambios de ESTILO que hagas en
+  Tablet o Celular se aplican solo en esas pantallas (los textos e imágenes cambian en todas).
+- Zoom, deshacer / rehacer, "Ver la web" (la abre en otra pestaña) y Guardar.
+- Más: buscar y reemplazar en todo el sitio, historial de respaldos, descargar la web en .zip,
+  nueva página y atajos de teclado.
+
+IZQUIERDA
+- Archivos: todos los archivos. Clic derecho para renombrar, duplicar o borrar (queda copia).
+- Capas: el árbol de la página. Arrastrá para reordenar; doble clic para ponerle nombre.
+- Agregar: títulos, párrafos, botones, columnas, tarjetas, imágenes, galerías, videos de YouTube,
+  mapas, botón de WhatsApp, formulario, redes y código HTML. Clic para insertar o arrastrar.
+- Imágenes: todas las imágenes del sitio. Tocá una para ponerla en la imagen elegida, de fondo,
+  o insertarla. También se arrastran a la página. "Subir imágenes" las achica solas.
+
+EN LA PÁGINA
+- Clic para elegir. En los textos escribís directo; aparece una barra con negrita, cursiva,
+  subrayado, tachado y links. Shift + Enter hace un salto de línea.
+- Doble clic en una imagen para reemplazarla. Clic derecho: copiar, pegar, duplicar, envolver,
+  subir, bajar, ver código, borrar.
+
+DERECHA
+- Elemento: texto, tipo de título, links (páginas, partes de la página, mail, teléfono, WhatsApp),
+  descripción de imágenes, clases, ID, atributos y el código del elemento.
+- Estilo: tipografía, color (con la paleta del sitio), tamaños, alineación, fondo (color, imagen
+  o degradado), bordes, sombra, márgenes, rellenos, filas y grillas, efectos de imagen
+  (brillo, contraste, blanco y negro...), rotación, posición, ocultar por pantalla y
+  animaciones al aparecer.
+- Página: título y descripción para Google, imagen para redes, favicon, idioma, colores
+  generales del sitio, tipografías de Google y código propio (Analytics, chats, etc.).
+- Revisión: busca problemas de accesibilidad y SEO (imágenes sin descripción, poco contraste,
+  títulos desordenados, imágenes pesadas, links vacíos...). Tocá uno para ir al elemento.
+
+EFECTOS (pestaña de la derecha)
+- Al aparecer: 21 animaciones (subir, deslizar, voltear, cortinas, círculo, rebote, letra por letra,
+  palabra por palabra, máquina de escribir...), con duración, demora, tipo de movimiento,
+  repetir cada vez y "de a uno" para los elementos de adentro.
+- En loop: flotar, latir, saltar, girar, tambalear, sacudir, brillar, degradado animado y más.
+- Al pasar el mouse: agrandar, elevar, sombra, brillo, zoom en la imagen, de B&N a color,
+  destello, subrayado que crece, inclinación 3D, imán...
+- Con el scroll: parallax, deslizar, agrandar, girar, aparecer/desaparecer, desenfocar, quedar pegado.
+- Texto: degradado (fijo o animado), contorno, neón, sombra 3D, resaltador y glitch.
+- Toda la página: barra de progreso, botón volver arriba, cursor personalizado, grano de película,
+  aparición suave y desplazamiento suave.
+
+PARA EL PORTAFOLIO
+- Al elegir una sección de proyecto aparecen sus 4 colores (fondo, texto, acento, secundario).
+- En las filas de proyectos podés cambiar la imagen que sigue al mouse.
+- En Página → "Imágenes del carrusel 3D" cambiás las 8 imágenes que giran en la portada.
+
+EDITOR DE IMÁGENES (doble clic en "Editar imagen", o desde Imágenes / Archivos)
+- Recortar con proporciones (1:1, 4:3, 16:9, 9:16...), rotar, voltear, enderezar y cambiar tamaño.
+- Ajustes: brillo, contraste, exposición, saturación, tono, temperatura, B&N, sepia, desenfoque,
+  nitidez, viñeta, invertir. Filtros listos: B&N, Sepia, Vintage, Cálido, Frío, Drama, Noir...
+- Pincel, borrador, texto, formas (rectángulo, círculo, línea, flecha), gotero, bote de pintura
+  y varita para borrar fondos lisos. Deshacer / rehacer. Guarda en JPG, PNG o WebP.
+- Atajos: V mover, C recortar, B pincel, E borrador, T texto, U formas, I gotero, G bote, W varita,
+  X intercambia colores, + / - zoom, Enter aplica, Esc cancela.
+
+MÁS FUNCIONES
+- Mover arrastrando: elegí algo y arrastrá el cuadradito naranja ✥. Los tiradores blancos
+  cambian ancho y alto (para el dispositivo elegido).
+- Shift + clic elige varios elementos a la vez.
+- Componentes: "Guardar como componente" en Elemento; después lo insertás en cualquier página
+  y "Actualizar en todas las páginas" pasa los cambios a todas las copias.
+- Formularios: elegí el formulario y poné tu mail; los mensajes llegan con FormSubmit (gratis).
+- Más → Publicar en internet (Netlify), Optimizar imágenes (WebP), Crear sitemap, Tema claro /
+  oscuro y English / Español.
+
+SEGURIDAD
+- Guardar (o Ctrl + S) guarda una copia de lo anterior en la carpeta "respaldos".
+  En Más > Historial podés restaurar cualquier versión.
+- Si el editor se cierra sin guardar, la próxima vez te ofrece recuperar los cambios.
+
+REQUISITOS
+- Google Chrome o Microsoft Edge, y Node.js instalado (para el comando npx que levanta el editor).
+
+Para cerrarlo: cerrá Chrome y la ventana negra.
