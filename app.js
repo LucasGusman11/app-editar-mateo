@@ -461,8 +461,8 @@
     if (keep) { try { if (keep.tab && W.MC) W.MC.show(keep.tab); W.scrollTo(0, keep.y); } catch {} keep = null; }
     renderLayers();
     if (!editing) { scheduleAudit(); return; }
-    L.documentElement.insertAdjacentHTML('beforeend', '<div id="__ed_lbl"></div><div id="__ed_drop"></div><div id="__ed_h"><button class="mv" title="Arrastrá para mover">✥</button><i class="rw" title="Ancho"></i><i class="rh" title="Alto"></i><i class="rc" title="Ancho y alto"></i></div>');
-    setupHandles(L);
+    L.documentElement.insertAdjacentHTML('beforeend', '<div id="__ed_lbl"></div><div id="__ed_drop"></div><div id="__ed_h"><button class="mv" title="Arrastrá para pasarlo a otra parte de la página (reordenar)">✥</button><i class="rw" title="Ancho"></i><i class="rh" title="Alto"></i><i class="rc" title="Ancho y alto"></i></div>');
+    setupHandles(L); setupDragMove(L);
     L.querySelectorAll('[data-eid]').forEach(el => {
       if (el.closest('script,style,svg,button,select,textarea,[role=tablist],iframe')) return;
       if (hasOwnText(el) && TEXT_TAGS.test(el.tagName)) {
@@ -549,6 +549,71 @@
     const h = S.live.getElementById('__ed_h');
     if (h) { const body = S.sel === S.live.body; h.style.display = body ? 'none' : 'block'; Object.assign(h.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' }); }
   }
+  // arrastrar cualquier elemento para cambiarlo de lugar
+  let suppressClick = false;
+  function moveSelTo(t) {
+    const s = srcOf(S.sel), target = srcOf(t.el) || S.doc.body;
+    if (!s || s === target || s.contains(target)) return false;
+    if (t.pos === 'before') target.before(s); else if (t.pos === 'after') target.after(s); else target.append(s);
+    markDirty(); reloadPreview(); toast('Elemento movido. Ctrl+Z lo devuelve.'); return true;
+  }
+  const parseTr = v => { const m = String(v || '').match(/(-?[\d.]+)px(?:\s+(-?[\d.]+)px)?/); return m ? [+m[1], +(m[2] || 0)] : [0, 0]; };
+  function nudge(el, dx, dy) {
+    const [x, y] = parseTr(ownStyle(el, 'translate'));
+    const nx = Math.round(x + dx), ny = Math.round(y + dy);
+    setStyle(el, 'translate', nx || ny ? `${nx}px ${ny}px` : '');
+  }
+  function resetPos(el) { snap(); setStyle(el, 'translate', ''); renderStyle(); toast('Volvió a su lugar.'); }
+  // arrastrar cualquier elemento: queda donde se suelta
+  function setupDragMove(L) {
+    let pd = null;
+    L.addEventListener('dragstart', e => { if (!dragKind) e.preventDefault(); }, true);
+    L.addEventListener('pointerdown', e => {
+      if (e.button !== 0 || e.shiftKey || e.altKey || e.ctrlKey || S.mode !== 'visual') return;
+      if (e.target.closest('#__ed_h, #__ed_lbl')) return;
+      let t = e.target.closest('[data-eid]'); if (!t || t === L.body || t === L.documentElement) return;
+      const editing = L.activeElement && L.activeElement.isContentEditable && L.activeElement.contains(t);
+      if (editing) return; // escribiendo: arrastrar selecciona texto
+      if (S.sel && S.sel !== t && S.sel.contains(t) && S.sel !== L.body) t = S.sel; // se mueve el bloque elegido
+      pd = { x: e.clientX, y: e.clientY, el: t, id: e.pointerId, src: e.target, moving: false };
+    }, true);
+    L.addEventListener('pointermove', e => {
+      if (!pd) return;
+      if (!pd.moving) {
+        if (Math.hypot(e.clientX - pd.x, e.clientY - pd.y) < 6) return;
+        pd.moving = true;
+        if (S.sel !== pd.el) select(pd.el, true);
+        if (L.activeElement && L.activeElement.blur) L.activeElement.blur();
+        L.getSelection().removeAllRanges();
+        try { pd.src.setPointerCapture(pd.id); } catch {}
+        snap(); hideRte();
+        pd.base = parseTr(ownStyle(pd.el, 'translate'));
+        pd.inline = pd.el.style.getPropertyValue('translate');
+        L.documentElement.style.cursor = 'grabbing';
+      }
+      e.preventDefault();
+      let dx = e.clientX - pd.x, dy = e.clientY - pd.y;
+      if (e.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
+      pd.dx = dx; pd.dy = dy;
+      pd.el.style.setProperty('translate', `${pd.base[0] + dx}px ${pd.base[1] + dy}px`, 'important');
+      positionLabel();
+      const lbl = L.getElementById('__ed_lbl'); if (lbl) lbl.textContent = `X ${Math.round(pd.base[0] + dx)} · Y ${Math.round(pd.base[1] + dy)}`;
+    }, true);
+    const end = () => {
+      if (!pd) return; const d = pd; pd = null;
+      if (!d.moving) return;
+      suppressClick = true; setTimeout(() => { suppressClick = false; }, 300);
+      L.documentElement.style.cursor = '';
+      d.inline ? d.el.style.setProperty('translate', d.inline) : d.el.style.removeProperty('translate');
+      if (!d.el.getAttribute('style')) d.el.removeAttribute('style');
+      if (!d.dx && !d.dy) { S.undo.pop(); updateUndo(); positionLabel(); return; }
+      nudge(d.el, d.dx, d.dy); renderStyle(); positionLabel();
+      toast(`Quedó donde lo soltaste (${DEV[S.dev].name}). Ctrl+Z para deshacer.`);
+    };
+    L.addEventListener('pointerup', end, true);
+    L.addEventListener('pointercancel', end, true);
+    L.addEventListener('click', e => { if (suppressClick) { e.preventDefault(); e.stopImmediatePropagation(); suppressClick = false; } }, true);
+  }
   function setupHandles(L) {
     const h = L.getElementById('__ed_h'); let mode = null, start = null;
     const W = L.defaultView;
@@ -578,11 +643,7 @@
     h.addEventListener('pointerup', e => {
       if (!mode) return; const m = mode; mode = null;
       if (m === 'move') {
-        hideDrop(); const t = h._t; h._t = null; if (!t) { S.undo.pop(); updateUndo(); return; }
-        const s = srcOf(S.sel), target = srcOf(t.el) || S.doc.body;
-        if (s.contains(target)) return;
-        if (t.pos === 'before') target.before(s); else if (t.pos === 'after') target.after(s); else target.append(s);
-        markDirty(); reloadPreview(); toast('Elemento movido.'); return;
+        hideDrop(); const t = h._t; h._t = null; if (!t || !moveSelTo(t)) { S.undo.pop(); updateUndo(); } return;
       }
       const el = S.sel, w = el.style.getPropertyValue('width'), hh = el.style.getPropertyValue('height');
       el.style.removeProperty('width'); el.style.removeProperty('height'); if (!el.getAttribute('style')) el.removeAttribute('style');
@@ -663,6 +724,11 @@
     else if (mod && k === 'd' && S.sel) { e.preventDefault(); dupEl(); }
     else if ((e.key === 'Delete' || e.key === 'Backspace') && S.sel) { e.preventDefault(); removeEl(); }
     else if (e.key === 'Escape') { clearSel(); hideCtx(); }
+    else if (/^Arrow/.test(e.key) && !e.altKey && !mod && S.sel && S.sel !== S.live.body) {
+      e.preventDefault(); const st = e.shiftKey ? 10 : 1;
+      if (!S._nudging) { snap(); S._nudging = true; } clearTimeout(S._nt); S._nt = setTimeout(() => { S._nudging = false; renderStyle(); }, 600);
+      nudge(S.sel, e.key === 'ArrowLeft' ? -st : e.key === 'ArrowRight' ? st : 0, e.key === 'ArrowUp' ? -st : e.key === 'ArrowDown' ? st : 0);
+    }
     else if (e.key === 'ArrowUp' && e.altKey && S.sel) { e.preventDefault(); moveEl(-1); }
     else if (e.key === 'ArrowDown' && e.altKey && S.sel) { e.preventDefault(); moveEl(1); }
     else if (e.key === '?' ) { e.preventDefault(); showKeys(); }
@@ -975,7 +1041,7 @@
     if (el.tagName === 'IMG') items.push(['Reemplazar imagen…', () => replaceImageFromDisk(el)]);
     items.push(['Copiar', copyEl], ['Pegar después', pasteEl], ['Duplicar', dupEl], '-',
       ['Elegir el contenedor', () => { const pp = el.parentElement && el.parentElement.closest('[data-eid]'); if (pp && pp.tagName !== 'HTML') select(pp); }],
-      ['Subir', () => moveEl(-1)], ['Bajar', () => moveEl(1)], ['Envolver en bloque', wrapEl], '-',
+      ['Subir', () => moveEl(-1)], ['Bajar', () => moveEl(1)], ['Volver a su lugar', () => resetPos(el)], ['Envolver en bloque', wrapEl], '-',
       ['Cambiar estilo', () => tab('right', 'style')], ['Ver su código', () => { tab('right', 'el'); elementCode(); }], '-',
       ['Borrar', () => removeEl(), 'danger']);
     if (!S.clip) items.splice(items.findIndex(i => i[0] === 'Pegar después'), 1);
@@ -1186,6 +1252,7 @@
         <div class="row2">${n('rotate', 'Rotación (°)', 'deg', 'step="1"')}${n('scale', 'Escala', '', 'step="0.05" min="0"')}</div>
         <div id="filters">${FILTERS.map(f => `<div class="field"><span>${f[1]}</span><div class="range"><input type="range" min="${f[2]}" max="${f[3]}" value="${f[4]}" data-f="${f[0]}" data-u="${f[5]}"><output></output></div></div>`).join('')}</div>
         <div class="row2">${sel('position', 'Posición', [['static', 'Normal'], ['relative', 'Relativa'], ['absolute', 'Absoluta'], ['fixed', 'Fija en pantalla'], ['sticky', 'Pegada al bajar']])}${n('z-index', 'Capa (z-index)', '', 'step="1"')}</div>
+        <div class="row2" style="align-items:end">${t('translate', 'Corrido de su lugar (X Y)', '0px 0px')}<div class="acts" style="margin:0 0 .1rem"><button class="btn sm" id="resetPos">Volver a su lugar</button></div></div>
         <div class="row4">${['top', 'right', 'bottom', 'left'].map(s => `<input class="inp" data-p="${s}" placeholder="${s === 'top' ? 'arr.' : s === 'right' ? 'der.' : s === 'bottom' ? 'abajo' : 'izq.'}" title="${s}">`).join('')}</div>
       </div>
       <div class="sec"><h3>Al pasar el mouse</h3>
@@ -1225,6 +1292,7 @@
     const gc = $('#gridCols'); const gt = ownStyle(el, 'grid-template-columns') || cs.gridTemplateColumns; const rep = gt.match(/repeat\((\d+)/); gc.value = rep ? rep[1] : (gt && gt !== 'none' ? gt.split(' ').length : '');
     $('#rawStyle').value = srcOf(el)?.getAttribute('style') || '';
     $('#goFx').onclick = () => tab('right', 'fx');
+    $('#resetPos').onclick = () => { targets.forEach(t => { snap(); setStyle(t, 'translate', ''); }); renderStyle(); toast('Volvió a su lugar.'); };
 
     // escritura
     let snapped = false; const once = () => { if (!snapped) { snap(); snapped = true; } };
@@ -1842,7 +1910,7 @@ html.ed-anim-on [data-ed-anim="blur"]:not(.ed-in){filter:blur(14px)}
   window.ED = { S, $, $$, esc, ext, dirOf, stamp, uid, slug, toast, kv, snap, markDirty, updateStatus, writeEdCss, readEdCss, setStyle, ownStyle, edId, cloneEdIds,
     srcOf, liveById, select, clearSel, reselect, insertHTML, reloadPreview, renderStyle, renderElement, renderFiles, renderAssets, renderLayers, renderBlocks, openFile,
     readText, readBytes, writeFile, setAttr, frame: () => frame, removeFile, storeImage, setImage, relPath, imgFolder, pickFiles, optimize, imageHTML, showCtx, modal, closeModal, ask, tab,
-    serialize, parseDoc, commitHTML, srcToPath, showImage, stripIds, renumber, BLOCKS, IC, DEV, DEVS, IMG_EXT, TEXT_EXT, scan, exportZipBytes, assetURLs, save };
+    serialize, parseDoc, commitHTML, srcToPath, showImage, dupEl, removeEl, moveEl, replaceImageFromDisk, setMode, positionLabel, resetPos, wrapEl, siteColors, stripIds, renumber, BLOCKS, IC, DEV, DEVS, IMG_EXT, TEXT_EXT, scan, exportZipBytes, assetURLs, save };
   document.dispatchEvent(new Event('ed-ready'));
 
 

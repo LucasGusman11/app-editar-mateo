@@ -8,6 +8,15 @@ PARA ABRIRLO
    Chrome pide permiso para ver y guardar cambios: aceptá.
    La próxima vez aparece el botón "Seguir con ..." para no tener que elegirla de nuevo.
 
+MODO SIMPLE (el que se abre de entrada)
+- Tocá cualquier cosa: aparece una barra con lo justo (tamaño, color, alinear, link, animar,
+  cambiar o editar imagen, fondo, espacio, duplicar, borrar). "Más" abre todas las opciones.
+- Arrastrá cualquier cosa: queda exactamente donde la soltás. Flechas del teclado: de a 1 px
+  (con Shift, de a 10). "A su lugar" la devuelve.
+- Botón naranja + debajo de lo elegido: agregás algo justo ahí (con buscador: "foto", "video"...).
+- Se guarda solo mientras editás (con copia de respaldo). Arriba elegís qué página editar.
+- "Modo avanzado" (arriba) muestra todo: archivos, capas, código, estilos completos, revisión.
+
 ARRIBA
 - Visual: editás con el mouse.  Probar: usás la web como un visitante.  Código: el código con colores.
 - Escritorio / Tablet / Celular: cómo se ve en cada pantalla. Los cambios de ESTILO que hagas en

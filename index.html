@@ -44,7 +44,9 @@
   <select class="sel" id="zoom" title="Zoom de la vista" aria-label="Zoom">
     <option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option>
   </select>
+  <select class="sel simple-only" id="pagePick" title="Página que estás editando" aria-label="Página"></select>
   <span class="grow"></span>
+  <label class="switch" title="Muestra todas las herramientas: código, capas, estilos completos"><input type="checkbox" id="advToggle"> Modo avanzado</label>
   <button class="icon" id="undo" title="Deshacer (Ctrl+Z)" aria-label="Deshacer">↶</button>
   <button class="icon" id="redo" title="Rehacer (Ctrl+Y)" aria-label="Rehacer">↷</button>
   <div class="menuwrap">
@@ -178,5 +180,6 @@
 <script src="imgedit.js"></script>
 <script src="extras.js"></script>
 <script src="fx.js"></script>
+<script src="simple.js"></script>
 </body>
 </html>
